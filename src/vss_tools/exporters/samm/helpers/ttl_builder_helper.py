@@ -17,7 +17,12 @@ from . import vss_helper as vss_helper
 from .data_types_and_units import DataTypes
 from .namespaces import Namespaces, get_node_name_from_vspec_uri, get_vspec_uri
 from .samm_concepts import SammCConcepts, SammConcepts, VSSConcepts
-from .string_helper import str_camel_case_split, str_to_lc_first_camel_case, str_to_uc_first_camel_case
+from .string_helper import (
+    str_camel_case_split,
+    str_to_lc_first_camel_case,
+    str_to_uc_first_camel_case,
+    str_to_uc_first
+)
 
 #
 # Builder helper, which provides a set of functions, to set up a TTL Graph,
@@ -91,6 +96,7 @@ def add_graph_node(graph: Graph, vss_node: VSSNode, is_aspect: bool) -> URIRef:
 
     if is_aspect:
         add_node_aspect(graph, vss_node, node_uri)
+
     # ELSE: just build a simple property node as usual
 
     # Preferred name should be white space in front of each upper case letter
@@ -327,7 +333,9 @@ def add_node_leaf(graph: Graph, node_uri: URIRef, vss_node: VSSNode):
 def add_node_leaf_constraint(graph: Graph, node_char_name: str, node_char_uri: URIRef, vss_node: VSSNode):
     log.debug("Add leaf-node constraint")
 
-    constraint_name = str_to_uc_first_camel_case(vss_node.ttl_name + "Constraint")
+    constraint_name = str_to_uc_first_camel_case(
+        vss_node.ttl_name + str_to_uc_first(SammCConcepts.CONSTRAINT.vsso_name)
+    )
     constraint_node_uri = get_vspec_uri(constraint_name)
 
     # Default Constraint URI is for Range (min/max) constraints
@@ -371,7 +379,9 @@ def add_node_leaf_constraint(graph: Graph, node_char_name: str, node_char_uri: U
 
         # Set the RegExp value for constraint_node_uri
 
-    base_c_name = str_to_uc_first_camel_case(vss_node.ttl_name + "BaseCharacteristic")
+    base_c_name = str_to_uc_first_camel_case(
+        vss_node.ttl_name + str_to_uc_first(SammCConcepts.BASE_CHARACTERISTICS.vsso_name)
+    )
     base_c_uri = get_vspec_uri(base_c_name)
 
     __add_node_tuple(graph, node_char_uri, SammCConcepts.BASE_CHARACTERISTICS.uri, base_c_uri)
@@ -473,7 +483,7 @@ def get_node_characteristic_name(node_uri: URIRef, has_limits: bool):
     # Node characteristic name is based on the node property URI, and should be in the form:
     # NodePropertyNameCharacteristic or NodePropertyNameTrait, in case if the node has some constraints
     node_name = get_node_name_from_vspec_uri(node_uri)
-    characteristic_name_suffix = "Trait" if has_limits else "Characteristic"
+    characteristic_name_suffix = SammCConcepts.TRAIT.vsso_name if has_limits else SammConcepts.CHARACTERISTIC.vsso_name
 
     return str_to_uc_first_camel_case(node_name + characteristic_name_suffix)
 
