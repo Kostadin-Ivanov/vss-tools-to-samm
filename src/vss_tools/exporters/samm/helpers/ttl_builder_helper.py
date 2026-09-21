@@ -17,12 +17,7 @@ from . import vss_helper as vss_helper
 from .data_types_and_units import DataTypes
 from .namespaces import Namespaces, get_node_name_from_vspec_uri, get_vspec_uri
 from .samm_concepts import SammCConcepts, SammConcepts, VSSConcepts
-from .string_helper import (
-    str_camel_case_split,
-    str_to_lc_first_camel_case,
-    str_to_uc_first_camel_case,
-    str_to_uc_first
-)
+from .string_helper import str_camel_case_split, str_to_lc_first_camel_case, str_to_uc_first, str_to_uc_first_camel_case
 
 #
 # Builder helper, which provides a set of functions, to set up a TTL Graph,
@@ -104,9 +99,29 @@ def add_graph_node(graph: Graph, vss_node: VSSNode, is_aspect: bool) -> URIRef:
     # EXAMPLE:
     #     node.name     : IsStrongCrossWindDetected
     #     should be like: Is Strong Cross Wind Detected
-    __add_node_tuple(
-        graph, node_uri, SammConcepts.PREFERRED_NAME.uri, Literal(str_camel_case_split(vss_node.ttl_name), "en")
-    )
+    #
+    # In case when VSSNode ttl_name has been prefixed with Parent node name, we should preserve the parent name casing
+    # and still keep the human friendly format, as per above.
+    #
+    # EXAMPLE:
+    #     node.name       : IsEnabled
+    #     node.ttl_name   : AbsIsEnabled
+    #     node.parent.name: ABS
+    #     PREFERRED NAME  : ABS Is Enabled
+    preferred_name = str_camel_case_split(vss_node.ttl_name)
+    if vss_node.name != vss_node.ttl_name:
+        if len(vss_node.ttl_name) > len(vss_node.name):
+            # Set preferred name by preserving VSSNode and its parent names' casing
+            parent_prefix = vss_helper.get_parent_prefix_for_ttl_name(vss_node, vss_node.name)
+
+            preferred_name = str_camel_case_split(parent_prefix + vss_node.name)
+
+        elif len(vss_node.ttl_name) == len(vss_node.name):
+            # VssNode TTL Name is same as its name, but they differ in casing
+            # => preserve VSSNode name casing and just split it
+            preferred_name = str_camel_case_split(vss_node.name)
+
+    __add_node_tuple(graph, node_uri, SammConcepts.PREFERRED_NAME.uri, Literal(preferred_name, "en"))
 
     log.debug("Created graph node with URI: '%s'.\n", node_uri)
 

@@ -15,7 +15,7 @@ def str_to_lc_first(string_to_update: str) -> str:
             - SomeStringToUpdate will be converted to: someStringToUpdate
 
             - SomeOTHERstringToUpdate will be converted to: someOTHERstringToUpdate
-        
+
         NOTE:
             CONSTANTS will be converted to ALL LOWER CASE so to preserve the constant casing.
 
@@ -149,10 +149,23 @@ def str_camel_case_split(string_to_update: str) -> str:
             prev_char = None
             if char_index >= 1:
                 prev_index = char_index - 1
-                prev_char = string_to_update[prev_index] 
+                prev_char = string_to_update[prev_index]
 
-            if char.isupper() and prev_char and (prev_char.islower() or prev_char.isnumeric()):
-                # Split between lower case character, followed by an upper one
+            next_char = None
+            if (char_index + 1) < string_to_update_length:
+                next_char = string_to_update[char_index + 1]
+
+            if (
+                char.isupper()
+                and prev_char
+                and (
+                    (prev_char.islower() or prev_char.isnumeric())
+                    or (prev_char.isupper() and next_char and next_char.islower())
+                )
+            ):
+                # Split between lower case character or number, followed by an upper one
+                # OR when a constant was followed by upper and lower case characters.
+                # Example: ABSIsEnabled should become: ABS Is Enabled
                 updated_str = updated_str + " " + char
             else:
                 updated_str = updated_str + char

@@ -90,8 +90,7 @@ def get_parent_prefix_for_ttl_name(vss_node: VSSNode, ttl_name: str, use_vehicle
             vss_node.parent.name != vss_node.parent.ttl_name
             and top_vss_tree_unique_node_names[node_key]["counter"] > 0
             and sum(
-                vss_node.parent.name in vss_path
-                for vss_path in top_vss_tree_unique_node_names[node_key]["vss_paths"]
+                vss_node.parent.name in vss_path for vss_path in top_vss_tree_unique_node_names[node_key]["vss_paths"]
             )
             > 1
         ):
@@ -295,7 +294,7 @@ def get_node_description(vss_node: VSSNode) -> str:
         spacer = spacer if description else " "
 
         # Align 'Comment:' with 'Description:' and 'VSS path:'
-        description = f"{description}\n\nComment{'   ' if description else ''}: {vss_node.data.comment}"
+        description = f"{description}\n\nComment{'    ' if description else ''}: {vss_node.data.comment}"
 
     if hasattr(vss_node.data, "unit") and vss_node.data.unit and len(vss_node.data.unit.strip()) > 0:
         description = f"{description}\n\nUnit{'       ' if description else ''}: {vss_node.data.unit}"
